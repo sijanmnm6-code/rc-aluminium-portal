@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>RC Aluminium | Staff & Location Financial System</title>
+    <!-- Font Awesome & Chart.js -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif;
+        }
+        body {
+            background: #eef2f7;
+            padding: 20px;
+        }
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        /* Header with language toggle */
+        .header {
+            background: linear-gradient(135deg, #001f3f, #003366);
+            border-radius: 32px;
+            padding: 1.2rem 2rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            color: white;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .logo h1 { font-size: 1.7rem; }
+        .logo h1 i { color: #f39c12; margin-right: 10px; }
+        .lang-switch {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 16px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .lang-switch:hover { background: #f39c12; color: #001f3f; }
+        .stats-ribbon {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+            background: rgba(0,0,0,0.2);
+            padding: 8px 20px;
+            border-radius: 40px;
+            flex-wrap: wrap;
+        }
+        .card {
+            background: white;
+            border-radius: 28px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            transition: 0.2s;
+            border: 1px solid #e9ecef;
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #eef2f5;
+            padding-bottom: 0.8rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .card-header h3 { font-size: 1.4rem; color: #002d5b; display: flex; gap: 10px; align-items: center; }
+        .grid-2, .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1rem;
+        }
+        label { font-weight: 600; font-size: 0.8rem; color: #2c3e50; display: block; margin-bottom: 5px; }
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #cfdfed;
+            border-radius: 20px;
+            background: #fff;
+            font-size: 0.9rem;
+            outline: none;
+        }
+        input:focus, select:focus { border-color: #f39c12; box-shadow: 0 0 0 2px rgba(243,156,18,0.2); }
+        .btn {
+            border: none;
+            padding: 12px 20px;
+            border-radius: 40px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+        }
+        .btn-primary { background: #002d5b; color: white; }
+        .btn-success { background: #27ae60; color: white; }
+        .btn-warning { background: #f39c12; color: #1e2a36; }
+        .btn-danger { background: #e74c3c; color: white; }
+        .btn-sm { padding: 6px 12px; font-size: 0.75rem; }
+        .badge {
+            background: #ecf0f1;
+            padding: 4px 10px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .table-wrapper { overflow-x: auto; border-radius: 20px; margin-top: 1rem; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 8px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f8fafc; color: #002d5b; }
+        .amount-positive { color: #27ae60; font-weight: bold; }
+        .amount-negative { color: #e74c3c; font-weight: bold; }
+        .location-tag { background: #e9ecef; font-size: 0.7rem; padding: 2px 8px; border-radius: 20px; }
+        .action-icons i { margin: 0 5px; cursor: pointer; }
+        .toast {
+            position: fixed; bottom: 20px; right: 20px;
+            background: #2c3e50; color: white; padding: 12px 24px;
+            border-radius: 50px; z-index: 999;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn { from { opacity:0; transform: translateY(20px);} to { opacity:1; transform: translateY(0);}}
+        .si-only, .en-only { display: inline; }
+        .lang-si .en-only { display: none; }
+        .lang-en .si-only { display: none; }
+        .flex-row { display: flex; gap: 15px; flex-wrap: wrap; align-items: center; }
+        hr { margin: 15px 0; }
+        @media (max-width: 700px) { .header { flex-direction: column; text-align: center; gap: 15px; } }
+    </style>
+</head>
+<body class="lang-en">
+<div class="app-container">
+    <!-- Header with language toggle -->
+    <div class="header">
+        <div class="logo">
+            <h1><i class="fas fa-dharmachakra"></i> RC ALUMINIUM PVT LTD</h1>
+            <div class="stats-ribbon">
+                <span id="totalStaffDisplay">👥 Staff: 0</span>
+                <span id="totalDueDisplay">💰 Due: LKR 0</span>
+                <span id="totalPaidDisplay">💸 Paid: LKR 0</span>
+            </div>
+        </div>
+        <div class="lang-switch" onclick="toggleLanguage()">
+            <i class="fas fa-language"></i> <span class="en-only">සිංහල</span><span class="si-only">English</span>
+        </div>
+    </div>
+
+    <!-- Staff Registration Card -->
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="fas fa-user-plus"></i> <span class="en-only">Staff Registration</span><span class="si-only">සේවක ලියාපදිංචිය</span></h3>
+        </div>
+        <div class="grid-3">
+            <input type="text" id="regName" placeholder="Full Name / සම්පූර්ණ නම">
+            <input type="text" id="regNIC" placeholder="NIC / ජාතික හැඳුනුම්පත">
+            <input type="tel" id="regMobile" placeholder="Mobile / ජංගම දුරකථනය">
+            <input type="number" id="regRate" placeholder="Daily Rate (LKR) / දිනක වැටුප">
+            <input type="text" id="regBank" placeholder="Bank Name / බැංකුව">
+            <input type="text" id="regAcc" placeholder="Account No / ගිණුම් අංකය">
+        </div>
+        <button class="btn btn-primary" style="width:100%; margin-top:1rem;" onclick="registerStaff()"><i class="fas fa-save"></i> <span class="en-only">Register Staff</span><span class="si-only">ලියාපදිංචි කරන්න</span></button>
+    </div>
+
+    <!-- Attendance & Transaction Entry with Location & Payment Method -->
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="fas fa-map-marker-alt"></i> <span class="en-only">Attendance + Payments (with Location)</span><span class="si-only">පැමිණීම + ගෙවීම් (ස්ථානය සහිත)</span></h3>
+        </div>
+        <div class="grid-2">
+            <select id="staffSelect"><option value="">-- Select Staff --</option></select>
+            <select id="logType" onchange="togglePaymentFields()">
+                <option value="IN">✅ Clock IN / පැමිණීම (Auto Time)</option>
+                <option value="OUT">🔚 Clock OUT / නික්මීම</option>
+                <option value="MANUAL_IN">📅 Manual IN / අතින් වේලාව</option>
+                <option value="OT">⏱️ Overtime / අතිකාල</option>
+                <option value="PAY">💰 Payment / ගෙවීම (Cash/Bank)</option>
+            </select>
+        </div>
+        <div class="grid-2" style="margin-top: 10px;">
+            <div>
+                <label><span class="en-only">📍 Work Location</span><span class="si-only">📍 වැඩ ස්ථානය</span></label>
+                <select id="locationSelect">
+                    <option value="Head Office - Colombo">Head Office - Colombo</option>
+                    <option value="Galle Factory">Galle Factory</option>
+                    <option value="Kandy Warehouse">Kandy Warehouse</option>
+                    <option value="Matara Site">Matara Site</option>
+                    <option value="Kurunegala Depot">Kurunegala Depot</option>
+                </select>
+            </div>
+            <div>
+                <label><span class="en-only">Date</span><span class="si-only">දිනය</span></label>
+                <input type="date" id="entryDate">
+            </div>
+        </div>
+        <div id="manualTimeDiv" style="display:none; margin-top:10px;">
+            <label><span class="en-only">Manual Time (HH:MM)</span><span class="si-only">අතින් වේලාව</span></label>
+            <input type="time" id="manualTime">
+        </div>
+        <div id="amountDiv" style="display:none; margin-top:10px;">
+            <label><span class="en-only">Amount (LKR)</span><span class="si-only">මුදල (රු.)</span></label>
+            <input type="number" id="amountVal" placeholder="0">
+        </div>
+        <div id="paymentMethodDiv" style="display:none; margin-top:10px;">
+            <label><span class="en-only">Payment Method</span><span class="si-only">ගෙවීමේ ක්‍රමය</span></label>
+            <select id="paymentMethod">
+                <option value="Cash">💵 Cash / මුදල්</option>
+                <option value="Bank Deposit">🏦 Bank Deposit / බැංකු තැන්පතු</option>
+            </select>
+        </div>
+        <button class="btn btn-success" style="width:100%; margin-top: 20px;" onclick="saveTransaction()"><i class="fas fa-check-circle"></i> <span class="en-only">Save Entry</span><span class="si-only">සුරකින්න</span></button>
+    </div>
+
+    <!-- Staff-wise Financial Dashboard (Paid / Due / Payment method breakdown) -->
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="fas fa-chart-line"></i> <span class="en-only">Staff Financial Dashboard (Paid vs Due)</span><span class="si-only">සේවක මූල්‍ය තොරතුරු (ගෙවූ සහ ගෙවිය යුතු)</span></h3>
+        </div>
+        <div class="table-wrapper">
+            <table id="dashboardTable">
+                <thead><tr><th>Staff</th><th>Worked Days</th><th>Total Earned (LKR)</th><th>Paid (LKR)</th><th>Due Balance</th><th>Payment Method Breakdown</th><th>Action</th></tr></thead>
+                <tbody id="dashboardBody"></tbody>
+            </table>
+        </div>
+        <canvas id="paymentChart" width="400" height="180" style="max-height: 220px; margin-top: 20px;"></canvas>
+    </div>
+
+    <!-- Recent Activity Log with Location Filter -->
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="fas fa-history"></i> <span class="en-only">Activity Log (with Location)</span><span class="si-only">ක්‍රියාකාරකම් ලොගය (ස්ථානය සමඟ)</span></h3>
+            <div class="flex-row">
+                <select id="filterStaff"><option value="all">All Staff</option></select>
+                <select id="filterLocation"><option value="all">All Locations</option></select>
+                <button class="btn btn-sm btn-primary" onclick="refreshLogs()"><i class="fas fa-filter"></i> Filter</button>
+                <button class="btn btn-sm btn-warning" onclick="exportCSV()"><i class="fas fa-download"></i> CSV</button>
+                <button class="btn btn-sm" onclick="backupAllData()"><i class="fas fa-archive"></i> Backup</button>
+                <button class="btn btn-sm" onclick="loadDemo()" style="background:#6c5ce7; color:white;"><i class="fas fa-chalkboard"></i> Demo</button>
+            </div>
+        </div>
+        <div class="table-wrapper">
+            <table id="logTable">
+                <thead><tr><th>Date</th><th>Staff</th><th>Type</th><th>Location</th><th>Details</th><th>Actions</th></tr></thead>
+                <tbody id="logBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ---------- DATA ----------
+    let staff = JSON.parse(localStorage.getItem('rc_adv_staff')) || [];
+    let logs = JSON.parse(localStorage.getItem('rc_adv_logs')) || [];
+    let currentLang = 'en';
+
+    // Helper: Toast
+    function toast(msg) { let t = document.createElement('div'); t.className = 'toast'; t.innerHTML = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2500); }
+
+    // Persist data
+    function persist() { localStorage.setItem('rc_adv_staff', JSON.stringify(staff)); localStorage.setItem('rc_adv_logs', JSON.stringify(logs)); }
+
+    // Compute staff finance (including payment method breakdown)
+    function getStaffFinance(sId) {
+        const s = staff.find(st => st.id == sId);
+        if (!s) return { days:0, earned:0, paid:0, due:0, cashPaid:0, bankPaid:0 };
+        const staffLogs = logs.filter(l => l.staffId == sId);
+        const inEntries = staffLogs.filter(l => l.type === 'IN' || l.type === 'MANUAL_IN');
+        const uniqueDays = new Set(inEntries.map(l => l.date)).size;
+        const otTotal = staffLogs.filter(l => l.type === 'OT').reduce((a,b) => a + (b.amount || 0), 0);
+        const earnedFromDays = uniqueDays * s.rate;
+        const totalEarned = earnedFromDays + otTotal;
+        const payments = staffLogs.filter(l => l.type === 'PAY');
+        const totalPaid = payments.reduce((a,b) => a + (b.amount || 0), 0);
+        const cashPaid = payments.filter(p => p.paymentMethod === 'Cash').reduce((a,b) => a + (b.amount || 0), 0);
+        const bankPaid = payments.filter(p => p.paymentMethod === 'Bank Deposit').reduce((a,b) => a + (b.amount || 0), 0);
+        return { days: uniqueDays, earned: totalEarned, paid: totalPaid, due: totalEarned - totalPaid, cashPaid, bankPaid };
+    }
+
+    // Refresh all UI components
+    let chartInstance = null;
+    function refreshAll() {
+        // Populate staff selects
+        const staffSelect = document.getElementById('staffSelect');
+        const filterStaff = document.getElementById('filterStaff');
+        staffSelect.innerHTML = '<option value="">-- Select Staff --</option>' + staff.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+        filterStaff.innerHTML = '<option value="all">All Staff</option>' + staff.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+        
+        // Update location filter (unique locations from logs)
+        const locationsSet = new Set();
+        logs.forEach(l => { if(l.location) locationsSet.add(l.location); });
+        const locationFilter = document.getElementById('filterLocation');
+        locationFilter.innerHTML = '<option value="all">All Locations</option>' + Array.from(locationsSet).map(loc => `<option value="${loc}">${loc}</option>`).join('');
+        
+        // Dashboard table
+        const dashboardBody = document.getElementById('dashboardBody');
+        dashboardBody.innerHTML = '';
+        let totalDueSum = 0, totalPaidSum = 0;
+        staff.forEach(s => {
+            const fin = getStaffFinance(s.id);
+            totalDueSum += fin.due; totalPaidSum += fin.paid;
+            const methodBreak = `💵 Cash: ${fin.cashPaid.toLocaleString()} | 🏦 Bank: ${fin.bankPaid.toLocaleString()}`;
+            const row = `<tr>
+                <td><strong>${escapeHtml(s.name)}</strong><br><small>${s.bank || ''} ${s.acc || ''}</small></td>
+                <td>${fin.days} days</td>
+                <td class="amount-positive">LKR ${fin.earned.toLocaleString()}</td>
+                <td>LKR ${fin.paid.toLocaleString()}</td>
+                <td class="${fin.due>=0?'amount-positive':'amount-negative'}">LKR ${fin.due.toLocaleString()}</td>
+                <td><small>${methodBreak}</small></td>
+                <td class="action-icons"><i class="fas fa-edit" onclick="editStaff(${s.id})"></i> <i class="fas fa-trash-alt" onclick="deleteStaff(${s.id})" style="color:#e74c3c;"></i></td>
+            </tr>`;
+            dashboardBody.insertAdjacentHTML('beforeend', row);
+        });
+        document.getElementById('totalStaffDisplay').innerHTML = `👥 Staff: ${staff.length}`;
+        document.getElementById('totalDueDisplay').innerHTML = `💰 Due: LKR ${totalDueSum.toLocaleString()}`;
+        document.getElementById('totalPaidDisplay').innerHTML = `💸 Paid: LKR ${totalPaidSum.toLocaleString()}`;
+        
+        // Payment chart (Cash vs Bank across all staff)
+        const totalCash = staff.reduce((sum, s) => sum + getStaffFinance(s.id).cashPaid, 0);
+        const totalBank = staff.reduce((sum, s) => sum + getStaffFinance(s.id).bankPaid, 0);
+        if(chartInstance) chartInstance.destroy();
+        const ctx = document.getElementById('paymentChart').getContext('2d');
+        chartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: { labels: ['Cash Payment', 'Bank Deposit'], datasets: [{ data: [totalCash, totalBank], backgroundColor: ['#27ae60', '#f39c12'], borderRadius: 8 }] },
+            options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+        });
+        
+        refreshLogs();
+    }
+    
+    // Logs with location and staff filters
+    function refreshLogs() {
+        const filterStaffId = document.getElementById('filterStaff').value;
+        const filterLoc = document.getElementById('filterLocation').value;
+        let filtered = [...logs].reverse();
+        if(filterStaffId !== 'all') filtered = filtered.filter(l => l.staffId == filterStaffId);
+        if(filterLoc !== 'all') filtered = filtered.filter(l => l.location === filterLoc);
+        const tbody = document.getElementById('logBody');
+        tbody.innerHTML = '';
+        filtered.slice(0, 150).forEach(log => {
+            const staffMember = staff.find(s => s.id == log.staffId);
+            const staffName = staffMember ? staffMember.name : 'Deleted';
+            let detailText = '';
+            if(log.type === 'OT' || log.type === 'PAY') detailText = `LKR ${(log.amount || 0).toLocaleString()} ${log.paymentMethod ? `(${log.paymentMethod})` : ''}`;
+            else if(log.type === 'MANUAL_IN') detailText = `🕒 ${log.time}`;
+            else detailText = `⏱️ ${log.time || 'auto'}`;
+            const row = `<tr>
+                <td>${log.date}</td>
+                <td>${escapeHtml(staffName)}</td>
+                <td><span class="badge">${log.type}</span></td>
+                <td><span class="location-tag"><i class="fas fa-map-pin"></i> ${log.location || '—'}</span></td>
+                <td>${detailText}</td>
+                <td class="action-icons"><i class="fas fa-pen" onclick="editLog('${log.id}')"></i> <i class="fas fa-trash-alt" onclick="deleteLog('${log.id}')" style="color:#e74c3c;"></i></td>
+            </tr>`;
+            tbody.insertAdjacentHTML('beforeend', row);
+        });
+        if(filtered.length===0) tbody.innerHTML = '<tr><td colspan="6">No records found</td></tr>';
+    }
+    
+    // Staff registration
+    function registerStaff() {
+        const name = document.getElementById('regName').value.trim();
+        const rate = parseFloat(document.getElementById('regRate').value);
+        if(!name || isNaN(rate) || rate<=0) return toast("Name & valid daily rate required");
+        staff.push({
+            id: Date.now(), name, nic: document.getElementById('regNIC').value, mobile: document.getElementById('regMobile').value,
+            rate, bank: document.getElementById('regBank').value, acc: document.getElementById('regAcc').value
+        });
+        persist(); refreshAll(); toast(`✅ ${name} registered`);
+        document.getElementById('regName').value = ''; document.getElementById('regRate').value = '';
+    }
+    
+    // Save transaction (attendance / payment / OT) with location
+    function saveTransaction() {
+        const staffId = document.getElementById('staffSelect').value;
+        if(!staffId) return toast("Select staff first");
+        const type = document.getElementById('logType').value;
+        let location = document.getElementById('locationSelect').value;
+        // For payments, location might be optional but we keep if filled
+        if((type === 'IN' || type === 'MANUAL_IN' || type === 'OUT') && !location) return toast("Location required for attendance");
+        const date = document.getElementById('entryDate').value || new Date().toISOString().slice(0,10);
+        let time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+        let amount = 0;
+        let paymentMethod = null;
+        
+        if(type === 'MANUAL_IN') {
+            const manual = document.getElementById('manualTime').value;
+            if(!manual) return toast("Set manual time");
+            time = manual;
+        }
+        if(type === 'OT' || type === 'PAY') {
+            amount = parseFloat(document.getElementById('amountVal').value);
+            if(isNaN(amount) || amount<=0) return toast("Enter valid amount");
+        }
+        if(type === 'PAY') {
+            paymentMethod = document.getElementById('paymentMethod').value;
+            if(!paymentMethod) return toast("Select payment method");
+        }
+        const newLog = {
+            id: Date.now(), staffId: parseInt(staffId), type, amount, time, date, location, paymentMethod
+        };
+        logs.push(newLog);
+        persist(); refreshAll(); toast(`Recorded: ${type} at ${location || 'N/A'}`);
+        // Clear extra fields
+        document.getElementById('amountVal').value = '';
+        document.getElementById('manualTime').value = '';
+    }
+    
+    function togglePaymentFields() {
+        const t = document.getElementById('logType').value;
+        document.getElementById('manualTimeDiv').style.display = (t === 'MANUAL_IN') ? 'block' : 'none';
+        document.getElementById('amountDiv').style.display = (t === 'OT' || t === 'PAY') ? 'block' : 'none';
+        document.getElementById('paymentMethodDiv').style.display = (t === 'PAY') ? 'block' : 'none';
+    }
+    
+    // Edit / Delete functions
+    function editStaff(id) {
+        const s = staff.find(s => s.id == id);
+        if(!s) return;
+        const newName = prompt("Edit Name", s.name); if(newName && newName.trim()) s.name = newName.trim();
+        const newRate = prompt("Edit Daily Rate (LKR)", s.rate); if(newRate && !isNaN(parseFloat(newRate))) s.rate = parseFloat(newRate);
+        const newBank = prompt("Bank Name", s.bank || ""); if(newBank !== null) s.bank = newBank;
+        const newAcc = prompt("Account No", s.acc || ""); if(newAcc !== null) s.acc = newAcc;
+        persist(); refreshAll(); toast("Staff updated");
+    }
+    function deleteStaff(id) {
+        if(confirm("Delete staff and ALL related logs?")) {
+            logs = logs.filter(l => l.staffId != id);
+            staff = staff.filter(s => s.id != id);
+            persist(); refreshAll(); toast("Staff removed");
+        }
+    }
+    function deleteLog(id) {
+        if(confirm("Delete this record?")) { logs = logs.filter(l => l.id != id); persist(); refreshAll(); toast("Deleted"); }
+    }
+    function editLog(id) {
+        const log = logs.find(l => l.id == id);
+        if(!log) return;
+        if(log.type === 'OT' || log.type === 'PAY') {
+            let newAmt = prompt("Edit amount (LKR)", log.amount);
+            if(newAmt && !isNaN(parseFloat(newAmt))) log.amount = parseFloat(newAmt);
+            if(log.type === 'PAY') {
+                let newMethod = prompt("Payment method (Cash/Bank Deposit)", log.paymentMethod);
+                if(newMethod && (newMethod === 'Cash' || newMethod === 'Bank Deposit')) log.paymentMethod = newMethod;
+            }
+        } else if(log.type === 'MANUAL_IN') {
+            let newTime = prompt("Edit time (HH:MM)", log.time);
+            if(newTime) log.time = newTime;
+        }
+        let newLoc = prompt("Edit location", log.location);
+        if(newLoc) log.location = newLoc;
+        persist(); refreshAll(); toast("Log updated");
+    }
+    
+    // Export CSV (includes location and payment method)
+    function exportCSV() {
+        let csvRows = [["ID","Date","Staff","Type","Location","Amount/Time","PaymentMethod"]];
+        logs.forEach(l => {
+            const s = staff.find(st => st.id == l.staffId);
+            const detail = (l.type === 'OT' || l.type === 'PAY') ? l.amount : l.time;
+            csvRows.push([l.id, l.date, s ? s.name : "?", l.type, l.location || "", detail, l.paymentMethod || ""]);
+        });
+        const blob = new Blob([csvRows.map(r => r.join(",")).join("\n")], {type:"text/csv"});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `RC_logs_${new Date().toISOString().slice(0,10)}.csv`; a.click(); toast("CSV exported");
+    }
+    function backupAllData() {
+        const data = JSON.stringify({staff, logs}, null, 2);
+        const blob = new Blob([data], {type:"application/json"});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `RC_backup_${Date.now()}.json`; a.click(); toast("Backup saved");
+    }
+    
+    // Language Toggle (English / Sinhala)
+    function toggleLanguage() {
+        document.body.classList.toggle('lang-si');
+        document.body.classList.toggle('lang-en');
+        currentLang = document.body.classList.contains('lang-si') ? 'si' : 'en';
+        const enOnly = document.querySelectorAll('.en-only');
+        const siOnly = document.querySelectorAll('.si-only');
+        if(currentLang === 'si') {
+            enOnly.forEach(el => el.style.display = 'none');
+            siOnly.forEach(el => el.style.display = 'inline');
+        } else {
+            enOnly.forEach(el => el.style.display = 'inline');
+            siOnly.forEach(el => el.style.display = 'none');
+        }
+    }
+    
+    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+    
+    // Demo data loader (with locations and payment methods)
+    function loadDemo() {
+        if(confirm("Load demo data? This will replace any existing data.")) {
+            staff = [
+                { id: 2001, name: "Kamal Perera", nic: "198912345678", mobile: "0712345678", rate: 1800, bank: "BOC", acc: "Colombo-1122" },
+                { id: 2002, name: "Sunil Bandara", nic: "199012345678", mobile: "0778899001", rate: 2000, bank: "HNB", acc: "Galle-3344" },
+                { id: 2003, name: "Nadeeka Jayawardena", nic: "198811223344", mobile: "0765432109", rate: 1500, bank: "Commercial", acc: "Kandy-5566" }
+            ];
+            logs = [
+                { id: 9001, staffId: 2001, type: "IN", amount: 0, time: "08:15", date: "2025-04-01", location: "Head Office - Colombo", paymentMethod: null },
+                { id: 9002, staffId: 2001, type: "OT", amount: 1200, time: "", date: "2025-04-02", location: "Head Office - Colombo", paymentMethod: null },
+                { id: 9003, staffId: 2001, type: "PAY", amount: 10000, time: "", date: "2025-04-03", location: "Head Office - Colombo", paymentMethod: "Cash" },
+                { id: 9004, staffId: 2002, type: "MANUAL_IN", amount: 0, time: "09:30", date: "2025-04-01", location: "Galle Factory", paymentMethod: null },
+                { id: 9005, staffId: 2002, type: "PAY", amount: 8000, time: "", date: "2025-04-04", location: "Galle Factory", paymentMethod: "Bank Deposit" },
+                { id: 9006, staffId: 2003, type: "IN", amount: 0, time: "08:00", date: "2025-04-01", location: "Kandy Warehouse", paymentMethod: null },
+                { id: 9007, staffId: 2003, type: "OT", amount: 750, time: "", date: "2025-04-02", location: "Kandy Warehouse", paymentMethod: null },
+                { id: 9008, staffId: 2003, type: "PAY", amount: 5000, time: "", date: "2025-04-05", location: "Kandy Warehouse", paymentMethod: "Cash" }
+            ];
+            persist(); refreshAll(); toast("Demo data loaded with locations and payment methods");
+        }
+    }
+    
+    // Set default date to today
+    function setDefaultDate() { if(!document.getElementById('entryDate').value) document.getElementById('entryDate').value = new Date().toISOString().slice(0,10); }
+    
+    // Initialization
+    window.onload = () => {
+        setDefaultDate();
+        refreshAll();
+        togglePaymentFields();
+        if(staff.length === 0) setTimeout(() => { if(confirm("No data found. Load demo?")) loadDemo(); }, 300);
+    };
+    
+    // Expose global functions
+    window.registerStaff = registerStaff; window.saveTransaction = saveTransaction; window.togglePaymentFields = togglePaymentFields;
+    window.editStaff = editStaff; window.deleteStaff = deleteStaff; window.deleteLog = deleteLog; window.editLog = editLog;
+    window.exportCSV = exportCSV; window.backupAllData = backupAllData; window.refreshLogs = refreshLogs; window.toggleLanguage = toggleLanguage;
+    window.loadDemo = loadDemo;
+</script>
+</body>
+</html>
